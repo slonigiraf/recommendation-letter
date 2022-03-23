@@ -1,27 +1,20 @@
 use super::*;
 
-use frame_system::RawOrigin;
 use frame_benchmarking::{benchmarks, impl_benchmark_test_suite, whitelisted_caller};
-
+use frame_system::RawOrigin;
 
 pub const REFEREE_ID: [u8; 32] = [
-	212, 53, 147, 199,  21, 253, 211,  28,
-   97, 20,  26, 189,   4, 169, 159, 214,
-  130, 44, 133,  88, 133,  76, 205, 227,
-  154, 86, 132, 231, 165, 109, 162, 125,
+	212, 53, 147, 199, 21, 253, 211, 28, 97, 20, 26, 189, 4, 169, 159, 214, 130, 44, 133, 88, 133,
+	76, 205, 227, 154, 86, 132, 231, 165, 109, 162, 125,
 ];
 
 pub const WORKER_ID: [u8; 32] = [
-	142, 175,   4,  21,  22, 135, 115,  99,
-   38, 201, 254, 161, 126,  37, 252,  82,
-  135,  97,  54, 147, 201,  18, 144, 156,
-  178,  38, 170,  71, 148, 242, 106,  72,
+	142, 175, 4, 21, 22, 135, 115, 99, 38, 201, 254, 161, 126, 37, 252, 82, 135, 97, 54, 147, 201,
+	18, 144, 156, 178, 38, 170, 71, 148, 242, 106, 72,
 ];
 pub const EMPLOYER_ID: [u8; 32] = [
-	254, 101, 113, 125, 173,   4,  71, 215,
-   21, 246,  96, 160, 165, 132,  17, 222,
-   80, 155,  66, 230, 239, 184,  55,  95,
-   86,  47,  88, 165,  84, 213, 134,  14,
+	254, 101, 113, 125, 173, 4, 71, 215, 21, 246, 96, 160, 165, 132, 17, 222, 80, 155, 66, 230,
+	239, 184, 55, 95, 86, 47, 88, 165, 84, 213, 134, 14,
 ];
 
 benchmarks! {
@@ -43,11 +36,6 @@ benchmarks! {
 			138,  15, 232,  13,  62,  73, 235, 204, 138,
 		];
 
-		// const referee = keyring.addFromUri('//Alice')
-  		// const worker = keyring.addFromUri('//Bob')
-  		// const employer = keyring.addFromUri('//Bob//stash')
-		//account::<AccountId>("whitelisted_caller", 0, 0)
-
 		let caller = whitelisted_caller();
 		let letter_id = 0 as u32;
 		let ask_price: BalanceOf<T> = 0u32.into();
@@ -55,11 +43,9 @@ benchmarks! {
 		let referee_id = H256::from(REFEREE_ID);
 		let worker_id = H256::from(WORKER_ID);
 		let employer_id = H256::from(EMPLOYER_ID);
-		
 		let referee_sign = H512::from(referee_signature);
 		let worker_sign = H512::from(worker_signature);
 	}: _(RawOrigin::Signed(caller), letter_id, referee_id, worker_id, employer_id, ask_price, referee_sign, worker_sign)
-	
 }
 
 impl_benchmark_test_suite!(Pallet, crate::tests::new_test_ext(), crate::tests::Test,);
