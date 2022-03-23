@@ -1207,6 +1207,7 @@ dependencies = [
  "hex-literal",
  "pallet-balances",
  "parity-scale-codec",
+ "rand_chacha 0.2.2",
  "serde",
  "sp-core",
  "sp-io",
