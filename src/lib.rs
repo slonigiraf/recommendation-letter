@@ -2,7 +2,7 @@
 
 use frame_support::{
 	pallet_prelude::*,
-	traits::{Currency, ExistenceRequirement, Randomness},
+	traits::{Currency, ExistenceRequirement},
 	transactional,
 };
 use frame_system::pallet_prelude::*;
@@ -40,7 +40,6 @@ pub mod pallet {
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
-		type Randomness: Randomness<Self::Hash, Self::BlockNumber>;
 		type Currency: Currency<Self::AccountId>;
 		type WeightInfo: WeightInfo;
 		#[pallet::constant]
