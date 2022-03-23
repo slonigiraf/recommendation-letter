@@ -73,16 +73,6 @@ impl pallet_balances::Config for Test {
 }
 
 parameter_types! {
-	pub static MockRandom: H256 = Default::default();
-}
-
-impl Randomness<H256, u64> for MockRandom {
-	fn random(_subject: &[u8]) -> (H256, u64) {
-		(MockRandom::get(), 0)
-	}
-}
-
-parameter_types! {
 	pub const MaxClassMetadata: u32 = 0;
 	pub const MaxTokenMetadata: u32 = 0;
 }
@@ -93,7 +83,6 @@ parameter_types! {
 
 impl Config for Test {
 	type Event = Event;
-	type Randomness = MockRandom;
 	type Currency = Balances;
 	type WeightInfo = ();
 	type DefaultDifficulty = DefaultDifficulty;
