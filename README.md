@@ -13,7 +13,7 @@ This pallet was not audited for bugs. Do not use this pallet as-is in production
 * `reimburse` - Send a transaction to penalize a referee.
 
 ## How to use
-An example blockchain node that uses recommendation letters: [recommendation-letter-example-node](https://github.com/slonigiraf/recommendation-letter-example-node)
-An example user interface: [recommendation-letter-example-ui](https://github.com/slonigiraf/recommendation-letter-example-ui)
+- An example blockchain node that uses recommendation letters: [recommendation-letter-example-node](https://github.com/slonigiraf/recommendation-letter-example-node)
+- An example user interface: [recommendation-letter-example-ui](https://github.com/slonigiraf/recommendation-letter-example-ui)
 
 License: Unlicense
