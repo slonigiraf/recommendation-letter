@@ -77,6 +77,8 @@ std = [
 	"sp-io/std",
 	"sp-runtime/std",
 	"sp-std/std",
+]
+balances = [
 	"pallet-balances/std",
 ]
 runtime-benchmarks = [

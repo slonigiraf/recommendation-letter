@@ -16,7 +16,7 @@ This pallet was not audited for bugs. Do not use this pallet as-is in production
 ```sh
 git clone https://github.com/slonigiraf/recommendation-letter.git
 cd recommendation-letter
-cargo test
+cargo test --features balances
 ```
 
 ## How to use
