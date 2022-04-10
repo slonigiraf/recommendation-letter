@@ -203,8 +203,6 @@ impl<T: Config> Pallet<T> {
 		let data = vec![true; INSURANCE_PER_CHUNK];
 		// Write Letter counting information to storage.
 		<OwnedLetersArray<T>>::insert((to.clone(), chunk as u64), data);
-		// Write `mint` event
-		Self::deposit_event(Event::ReimbursementHappened(to, chunk as u64));
 		Ok(())
 	}
 
