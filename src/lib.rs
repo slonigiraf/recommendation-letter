@@ -35,6 +35,9 @@ pub type AccountId = <<Signature as Verify>::Signer as IdentifyAccount>::Account
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
+	use frame_support::pallet_prelude::*;
+	use frame_system::pallet_prelude::*;
+	use scale_info::TypeInfo;
 
 	/// Configure the pallet by specifying the parameters and types it depends on.
 	#[pallet::config]
@@ -69,9 +72,9 @@ pub mod pallet {
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
-	#[pallet::metadata(
-		T::AccountId = "AccountId", LetterIndexOf<T> = "LetterIndex", Option<BalanceOf<T>> = "Option<Balance>", BalanceOf<T> = "Balance",
-	)]
+	// #[pallet::metadata(
+	// 	T::AccountId = "AccountId", LetterIndexOf<T> = "LetterIndex", Option<BalanceOf<T>> = "Option<Balance>", BalanceOf<T> = "Balance",
+	// )]
 	pub enum Event<T: Config> {
 		ReimbursementHappened(H256, u64),
 	}
