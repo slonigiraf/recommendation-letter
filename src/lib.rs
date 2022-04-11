@@ -48,6 +48,7 @@ pub mod pallet {
 		type WeightInfo: WeightInfo;
 		#[pallet::constant]
 		type DefaultDifficulty: Get<u32>;
+		type LettersPerChunk: Get<u32>;
 	}
 	pub type BalanceOf<T> =
 		<<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
@@ -57,7 +58,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn was_letter_used)]
 	pub(super) type OwnedLetersArray<T: Config> =
-		StorageMap<_, Twox64Concat, (H256, u64), Vec<bool>, ValueQuery>;
+		StorageMap<_, Twox64Concat, (H256, u64), BoundedVec<bool, T::LettersPerChunk>, ValueQuery>;
 
 	#[pallet::genesis_config]
 	#[derive(Default)]
@@ -179,7 +180,7 @@ impl<T: Config> Pallet<T> {
 		let referee_bytes_array: [u8; 32] = Self::slice_to_array(account_bytes);
 		let referee: AccountId32 = AccountId32::new(referee_bytes_array);
 		let mut referee_init_account32 = AccountId32::as_ref(&referee);
-		T::AccountId::decode(&mut referee_init_account32).unwrap_or_default()
+		T::AccountId::decode(&mut referee_init_account32).unwrap()
 	}
 	/// A wrapper function to validate signatures
 	fn signature_is_valid(signature: H512, message: Vec<u8>, pubkey: H256) -> bool {
@@ -203,7 +204,7 @@ impl<T: Config> Pallet<T> {
 			!<OwnedLetersArray<T>>::contains_key((to.clone(), chunk as u64)),
 			"Letter already contains_key"
 		);
-		let data = vec![true; INSURANCE_PER_CHUNK];
+		let data: BoundedVec<bool, T::LettersPerChunk> = (vec![true; INSURANCE_PER_CHUNK]).try_into().unwrap();
 		// Write Letter counting information to storage.
 		<OwnedLetersArray<T>>::insert((to.clone(), chunk as u64), data);
 		Ok(())

@@ -55,6 +55,7 @@ impl frame_system::Config for Test {
 	type SystemWeightInfo = ();
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = ();
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 
 parameter_types! {
@@ -89,6 +90,7 @@ parameter_types! {
 
 parameter_types! {
 	pub const DefaultDifficulty: u32 = 3;
+	pub const LettersPerChunk: u32 = 1000;
 }
 
 impl Config for Test {
@@ -97,6 +99,7 @@ impl Config for Test {
 	type Currency = Balances;
 	type WeightInfo = ();
 	type DefaultDifficulty = DefaultDifficulty;
+	type LettersPerChunk = LettersPerChunk;
 }
 
 pub const REFEREE_ID: [u8; 32] = [
