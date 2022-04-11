@@ -543,7 +543,49 @@ fn successful_reimburce() {
 }
 
 #[test]
-fn right_polkadot_js_extension_sign() {
+fn right_polkadot_js_local_referee_sign() {
+	new_test_ext().execute_with(|| {
+		//--------
+
+		let letter_id: u32 = 31;
+		let ask_price_u128: u128 = 1000000000000000;
+		let referee_id_bytes: [u8; 32] = [
+			212, 53, 147, 199, 21, 253, 211, 28, 97, 20, 26, 189, 4, 169, 159, 214, 130, 44, 133,
+			88, 133, 76, 205, 227, 154, 86, 132, 231, 165, 109, 162, 125,
+		];
+		let worker_id_bytes: [u8; 32] = [
+			142, 175, 4, 21, 22, 135, 115, 99, 38, 201, 254, 161, 126, 37, 252, 82, 135, 97, 54,
+			147, 201, 18, 144, 156, 178, 38, 170, 71, 148, 242, 106, 72,
+		];
+		let referee_sign_bytes: [u8; 64] = [
+			106, 140, 171, 143, 1, 27, 113, 45, 137, 234, 251, 115, 27, 216, 89, 155, 234, 28, 223,
+			37, 167, 148, 113, 63, 90, 200, 206, 109, 1, 226, 6, 88, 146, 115, 161, 121, 106, 207,
+			21, 201, 168, 85, 249, 59, 215, 236, 53, 61, 102, 184, 105, 46, 13, 130, 138, 225, 73,
+			19, 139, 70, 122, 217, 186, 138,
+		];
+
+		//--------
+		let ask_price_bytes = &ask_price_u128.to_be_bytes();
+		let letter_id_bytes = &letter_id.to_be_bytes();
+		let mut skill_receipt_data = Vec::new();
+		skill_receipt_data.extend_from_slice(letter_id_bytes);
+		skill_receipt_data.extend_from_slice(&referee_id_bytes);
+		skill_receipt_data.extend_from_slice(&worker_id_bytes);
+		skill_receipt_data.extend_from_slice(ask_price_bytes);
+
+		assert_eq!(
+			LettersModule::signature_is_valid(
+				H512::from(referee_sign_bytes),
+				skill_receipt_data,
+				H256::from(referee_id_bytes)
+			),
+			true
+		);
+	});
+}
+
+// #[test]
+fn right_polkadot_js_extension_referee_sign() {
 	new_test_ext().execute_with(|| {
 		//--------
 		let letter_id: u32 = 23;
@@ -580,4 +622,86 @@ fn right_polkadot_js_extension_sign() {
 			true
 		);
 	});
+}
+
+// #[test]
+fn right_polkadot_js_extension_sign() {
+	new_test_ext().execute_with(|| {
+		// --------- for Rust tests ------------
+		// Test-tmp (https://polkadot.js.org/apps/?rpc=wss%3A%2F%2Frpc.polkadot.io#/signing)
+		// account: 14PiVshTEkzMtjbWZaqxnYBm4DEsKLCksLn1ntZj7U6dwAWw
+		// account_hex: 0x9607cb1c4b34cb2f18d56368b2a272bd6d7533c77658fdc8768c921f34cfa922
+		// dataHex: 0x8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48
+		// signatureHex: 0x62c31670f9c52f6e53018a4a21cbd083fff2448cac6c194c6ad5588f6a4b6c7cd34d12e658d7a656131a0d0db377bb903db0f23019b21e5c59aa34b071c7c58d
+		// true: signature is valid by signatureVerify from @polkadot/util-crypto
+
+		let account_bytes: [u8; 32] = [
+			150, 7, 203, 28, 75, 52, 203, 47, 24, 213, 99, 104, 178, 162, 114, 189, 109, 117, 51,
+			199, 118, 88, 253, 200, 118, 140, 146, 31, 52, 207, 169, 34,
+		];
+		let data_bytes: [u8; 32] = [
+			142, 175, 4, 21, 22, 135, 115, 99, 38, 201, 254, 161, 126, 37, 252, 82, 135, 97, 54,
+			147, 201, 18, 144, 156, 178, 38, 170, 71, 148, 242, 106, 72,
+		];
+		let signature_bytes: [u8; 64] = [
+			98, 195, 22, 112, 249, 197, 47, 110, 83, 1, 138, 74, 33, 203, 208, 131, 255, 242, 68,
+			140, 172, 108, 25, 76, 106, 213, 88, 143, 106, 75, 108, 124, 211, 77, 18, 230, 88, 215,
+			166, 86, 19, 26, 13, 13, 179, 119, 187, 144, 61, 176, 242, 48, 25, 178, 30, 92, 89,
+			170, 52, 176, 113, 199, 197, 141,
+		];
+
+		// dataWrappedHex: 0x3c42797465733e3078386561663034313531363837373336333236633966656131376532356663353238373631333639336339313239303963623232366161343739346632366134383c2f42797465733e
+		let dataWrapped_bytes: [u8; 81] = [
+			60, 66, 121, 116, 101, 115, 62, 48, 120, 56, 101, 97, 102, 48, 52, 49, 53, 49, 54, 56,
+			55, 55, 51, 54, 51, 50, 54, 99, 57, 102, 101, 97, 49, 55, 101, 50, 53, 102, 99, 53, 50,
+			56, 55, 54, 49, 51, 54, 57, 51, 99, 57, 49, 50, 57, 48, 57, 99, 98, 50, 50, 54, 97, 97,
+			52, 55, 57, 52, 102, 50, 54, 97, 52, 56, 60, 47, 66, 121, 116, 101, 115, 62,
+		]; //--------
+
+		let mut data_to_sign = Vec::new();
+		data_to_sign.extend_from_slice(&dataWrapped_bytes);
+
+		assert_eq!(
+			LettersModule::signature_is_valid(
+				H512::from(signature_bytes),
+				data_to_sign,
+				H256::from(account_bytes)
+			),
+			true
+		);
+	});
+}
+
+use hex_literal::hex;
+#[test]
+fn can_verify_known_wrapped_message() {
+	let message = b"<Bytes>message to sign</Bytes>";
+	let public = hex!("f84d048da2ddae2d9d8fd6763f469566e8817a26114f39408de15547f6d47805");
+	let signature = hex!("48ce2c90e08651adfc8ecef84e916f6d1bb51ebebd16150ee12df247841a5437951ea0f9d632ca165e6ab391532e75e701be6a1caa88c8a6bcca3511f55b4183");
+	
+	let mut data_to_sign = Vec::new();
+	data_to_sign.extend_from_slice(message);
+	let is_valid = LettersModule::signature_is_valid(
+		H512::from(signature),
+		data_to_sign,
+		H256::from(public)
+	);
+	assert!(is_valid);
+}
+
+#[test]
+fn can_verify_known_wrapped_message_fail() {
+	let message = b"message to sign";
+	let public = hex!("f84d048da2ddae2d9d8fd6763f469566e8817a26114f39408de15547f6d47805");
+	let signature = hex!("48ce2c90e08651adfc8ecef84e916f6d1bb51ebebd16150ee12df247841a5437951ea0f9d632ca165e6ab391532e75e701be6a1caa88c8a6bcca3511f55b4183");
+	
+	let mut data_to_sign = Vec::new();
+	data_to_sign.extend_from_slice(message);
+	let is_valid = LettersModule::signature_is_valid(
+		H512::from(signature),
+		data_to_sign,
+		H256::from(public)
+	);
+
+	assert!(!is_valid);
 }
