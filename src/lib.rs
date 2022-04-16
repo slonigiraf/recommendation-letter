@@ -189,20 +189,11 @@ impl<T: Config> Pallet<T> {
 		data_signed_by_extension.extend_from_slice(&message);
 		data_signed_by_extension.extend_from_slice(b"</Bytes>");
 
-		let extension_signature_is_valid = sp_io::crypto::sr25519_verify(
+		sp_io::crypto::sr25519_verify(
 			&Signature::from_raw(*signature.as_fixed_bytes()),
 			&data_signed_by_extension,
 			&Public::from_h256(pubkey),
-		);
-		if extension_signature_is_valid {
-			extension_signature_is_valid
-		} else {
-			sp_io::crypto::sr25519_verify(
-				&Signature::from_raw(*signature.as_fixed_bytes()),
-				&message,
-				&Public::from_h256(pubkey),
-			)
-		}
+		)
 	}
 	fn slice_to_array(barry: &[u8]) -> [u8; 32] {
 		let mut array = [0u8; 32];
