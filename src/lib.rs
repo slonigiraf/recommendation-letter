@@ -20,7 +20,7 @@ pub use pallet::*;
 mod benchmarking;
 #[cfg(test)]
 mod tests;
-mod weights;
+pub mod weights;
 
 pub use weights::WeightInfo;
 
