@@ -111,6 +111,9 @@ pub const MALICIOUS_ID: [u8; 32] = hex!("badbadbadd0447d715f660a0a58411de509b42e
 pub const INITIAL_BALANCE: u64 = 1000;
 pub const REFEREE_STAKE: u64 = 10;
 pub const LETTER_ID: u32 = 1;
+pub const BEFORE_VALID_BLOCK_NUMBER: u64 = 100;
+pub const LAST_VALID_BLOCK_NUMBER: u64 = 100;
+pub const AFTER_VALID_BLOCK_NUMBER: u64 = 101;
 
 // Build genesis storage according to the mock runtime.
 pub fn new_test_ext() -> sp_io::TestExternalities {
@@ -561,5 +564,15 @@ fn right_polkadot_js_extension_referee_sign() {
 			),
 			true
 		);
+	});
+}
+
+#[test]
+fn example_how_to_use_block_number() {
+	new_test_ext().execute_with(|| {
+		let expected_number = 1u64;
+		let got_number = System::block_number();
+		frame_system::Pallet::<Test>::set_block_number(expected_number);
+		assert_eq!(got_number, expected_number);
 	});
 }
