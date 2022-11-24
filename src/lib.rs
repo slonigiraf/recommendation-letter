@@ -13,6 +13,7 @@ use sp_core::{H256, H512};
 
 use sp_runtime::traits::{IdentifyAccount, Verify};
 use sp_runtime::AccountId32;
+use sp_runtime::traits::SaturatedConversion;
 
 pub use pallet::*;
 
@@ -87,6 +88,7 @@ pub mod pallet {
 		InvalidLetterAmount,
 		RefereeBalanceIsNotEnough,
 		LetterWasMarkedAsFraudBefore,
+		Expired,
 	}
 
 	#[pallet::pallet]
@@ -101,6 +103,7 @@ pub mod pallet {
 		pub fn reimburse(
 			origin: OriginFor<T>,
 			letter_id: u32,
+			// block_number: u64,
 			referee_id: H256,
 			worker_id: H256,
 			employer_id: H256,
@@ -109,6 +112,11 @@ pub mod pallet {
 			worker_sign: H512,
 		) -> DispatchResultWithPostInfo {
 			let _sender = ensure_signed(origin)?;
+
+			ensure!(
+				frame_system::Pallet::<T>::block_number().saturated_into::<u64>() <= 1u64,
+				Error::<T>::Expired
+			);
 
 			// 1 , referee_id, worker_id, 10 - see below
 			// [0, 0, 0, 1],

@@ -576,3 +576,59 @@ fn example_how_to_use_block_number() {
 		assert_eq!(got_number, expected_number);
 	});
 }
+
+#[test]
+fn expired() {
+	new_test_ext().execute_with(|| {
+		let referee_hash = H256::from(REFEREE_ID);
+
+		//Data to be signed is represented as u8 array
+		//letter_id (u32) | teach_address [u8; 32] | stud_address [u8; 32] | amount (u128)
+
+		// letter_id (1): [0, 0, 0, 1] // println!("letter_id (1 as u32): {:?}", (1 as u32).to_be_bytes());//
+		// letter_id (2): [0, 0, 0, 2] // println!("letter_id (2 as u32): {:?}", (2 as u32).to_be_bytes());
+
+		// amount (10 as u128): [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10] // println!("amount (10 as u128): {:?}", (10 as u128).to_be_bytes());
+
+		// Data to be signed by referee:
+		// letter_id (u32) | teach_address [u8; 32] | stud_address [u8; 32] | amount (u128)
+		// 1 , REFEREE_ID, WORKER_ID, 10 - see below:
+		// [0, 0, 0, 1],
+		// [228,167,81,18,204,23,38,108,155,194,90,41,194,163,58,60,89,176,227,117,233,66,197,106,239,232,113,141,216,124,78,49],
+		// [178,77,57,242,36,161,83,238,138,176,187,13,7,59,100,92,45,157,163,43,133,176,199,22,118,202,133,229,161,199,255,75],
+		// [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10]
+		//
+		// Referee signature: [96,20,15,21,11,137,10,192,129,3,154,34,203,118,28,19,176,54,165,181,227,156,70,197,73,86,226,111,137,243,69,95,41,74,25,254,228,34,212,189,141,134,194,44,229,172,27,43,67,73,73,58,61,63,37,176,120,195,153,198,46,42,231,129]
+		//
+		// DATA TO BE SIGNED BY STUDENT
+		// 1 , REFEREE_ID, WORKER_ID, 10, referee_signATURE, EMPLOYER_ID
+		// [0, 0, 0, 1],
+		// [228,167,81,18,204,23,38,108,155,194,90,41,194,163,58,60,89,176,227,117,233,66,197,106,239,232,113,141,216,124,78,49],
+		// [178,77,57,242,36,161,83,238,138,176,187,13,7,59,100,92,45,157,163,43,133,176,199,22,118,202,133,229,161,199,255,75],
+		// [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10]
+		// [96,20,15,21,11,137,10,192,129,3,154,34,203,118,28,19,176,54,165,181,227,156,70,197,73,86,226,111,137,243,69,95,41,74,25,254,228,34,212,189,141,134,194,44,229,172,27,43,67,73,73,58,61,63,37,176,120,195,153,198,46,42,231,129]
+		// [166, 82, 220, 58, 28, 232, 181, 15, 154, 161, 152, 109, 179, 47, 157, 32, 202, 28, 33, 243, 219, 161, 164, 110, 173, 174, 79, 180, 188, 244, 227, 86]
+		//
+
+		let referee_signature: [u8; 64] = hex!("2e4e320dd4e6a289795cf51f60bc385dd19c41ccaa0f77c1f7c5c10cd2583a4c8ca01899e3720f5dd4974f695389c9bea6e5839dd692bdebd30c3220f740fb8a");
+		let worker_signature: [u8; 64] = hex!("3e244a3e0ea0b261ed7bd6bd4c538ee9e1e13ab797d4c245c9fc94e98e36eb79b4366380262e9d609257af9b55afbfc9afc72bfb8f860b7e0522db1f02ed9588");
+
+		let number = 1;
+		
+		frame_system::Pallet::<Test>::set_block_number(AFTER_VALID_BLOCK_NUMBER);
+
+		assert_noop!(
+			LettersModule::reimburse(
+				Origin::signed(AccountId::from(Public::from_raw(REFEREE_ID)).into_account()),
+				LETTER_ID,
+				H256::from(REFEREE_ID),
+				H256::from(WORKER_ID),
+				H256::from(EMPLOYER_ID),
+				REFEREE_STAKE,
+				H512::from(referee_signature),
+				H512::from(worker_signature)
+			),
+			Error::<Test>::Expired
+		);
+	});
+}
