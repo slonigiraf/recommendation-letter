@@ -103,7 +103,7 @@ pub mod pallet {
 		pub fn reimburse(
 			origin: OriginFor<T>,
 			letter_id: u32,
-			// block_number: u64,
+			block_number: u64,
 			referee_id: H256,
 			worker_id: H256,
 			employer_id: H256,
@@ -114,7 +114,7 @@ pub mod pallet {
 			let _sender = ensure_signed(origin)?;
 
 			ensure!(
-				frame_system::Pallet::<T>::block_number().saturated_into::<u64>() <= 1u64,
+				frame_system::Pallet::<T>::block_number().saturated_into::<u64>() <= block_number,
 				Error::<T>::Expired
 			);
 
@@ -126,6 +126,7 @@ pub mod pallet {
 			// or in line:
 
 			let letter_id_bytes = &letter_id.to_be_bytes();
+			let block_number_bytes = &block_number.to_be_bytes();
 			let referee_id_bytes = referee_id.as_bytes();
 			let employer_id_bytes = employer_id.as_bytes();
 			let worker_id_bytes = worker_id.as_bytes();
@@ -136,6 +137,7 @@ pub mod pallet {
 
 			let mut skill_receipt_data = Vec::new();
 			skill_receipt_data.extend_from_slice(letter_id_bytes);
+			skill_receipt_data.extend_from_slice(block_number_bytes);
 			skill_receipt_data.extend_from_slice(referee_id_bytes);
 			skill_receipt_data.extend_from_slice(worker_id_bytes);
 			skill_receipt_data.extend_from_slice(ask_price_bytes);
