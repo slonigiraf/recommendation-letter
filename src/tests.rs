@@ -319,37 +319,16 @@ fn wrong_referee_sign() {
 #[test]
 fn signature_is_valid() {
 	new_test_ext().execute_with(|| {
-		//--------
-		let letter_id: u32 = 23;
-		let ask_price_u128: u128 = 1000000000000000;
-		let referee_id_bytes: [u8; 32] = [
-			202, 112, 158, 97, 34, 240, 209, 219, 93, 46, 189, 180, 28, 113, 25, 197, 205, 6, 81,
-			50, 184, 168, 77, 159, 24, 205, 125, 9, 110, 129, 98, 22,
-		];
-		let worker_id_bytes: [u8; 32] = [
-			142, 175, 4, 21, 22, 135, 115, 99, 38, 201, 254, 161, 126, 37, 252, 82, 135, 97, 54,
-			147, 201, 18, 144, 156, 178, 38, 170, 71, 148, 242, 106, 72,
-		];
-		let referee_sign_bytes: [u8; 64] = [
-			46, 98, 203, 32, 13, 16, 69, 158, 4, 224, 203, 206, 205, 18, 44, 113, 74, 154, 131, 90,
-			154, 30, 71, 181, 186, 130, 120, 30, 8, 253, 177, 25, 26, 56, 200, 13, 48, 180, 5, 9,
-			30, 190, 171, 221, 146, 79, 231, 151, 59, 47, 1, 177, 117, 99, 119, 23, 69, 68, 27,
-			219, 112, 27, 245, 132,
-		];
-		//--------
-		let ask_price_bytes = &ask_price_u128.to_be_bytes();
-		let letter_id_bytes = &letter_id.to_be_bytes();
-		let mut skill_receipt_data = Vec::new();
-		skill_receipt_data.extend_from_slice(letter_id_bytes);
-		skill_receipt_data.extend_from_slice(&referee_id_bytes);
-		skill_receipt_data.extend_from_slice(&worker_id_bytes);
-		skill_receipt_data.extend_from_slice(ask_price_bytes);
-
+		let data_bytes: [u8; 84] = [0,0,0,0,212,53,147,199,21,253,211,28,97,20,26,189,4,169,159,214,130,44,133,88,133,76,205,227,154,86,132,231,165,109,162,125,142,175,4,21,22,135,115,99,38,201,254,161,126,37,252,82,135,97,54,147,201,18,144,156,178,38,170,71,148,242,106,72,0,0,0,0,0,0,0,0,0,3,141,126,164,198,128,0];
+		let signer_bytes: [u8; 32] = [212,53,147,199,21,253,211,28,97,20,26,189,4,169,159,214,130,44,133,88,133,76,205,227,154,86,132,231,165,109,162,125];
+		let sign_bytes: [u8; 64] = [138,50,217,58,78,160,111,75,193,32,230,24,240,159,78,28,220,15,52,217,12,147,92,108,52,16,105,4,103,81,250,88,56,4,210,212,185,12,172,114,108,71,241,188,83,6,40,85,142,69,39,221,23,100,33,137,27,188,147,119,5,96,242,140];
+		let mut data = Vec::new();
+		data.extend_from_slice(&data_bytes);
 		assert_eq!(
 			LettersModule::signature_is_valid(
-				H512::from(referee_sign_bytes),
-				skill_receipt_data,
-				H256::from(referee_id_bytes)
+				H512::from(sign_bytes),
+				data,
+				H256::from(signer_bytes)
 			),
 			true
 		);
