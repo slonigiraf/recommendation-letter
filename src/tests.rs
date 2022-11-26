@@ -104,14 +104,14 @@ impl Config for Test {
 
 use hex_literal::hex;
 
-pub const REFEREE_ID: [u8; 32] = hex!("d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d");
-pub const WORKER_ID: [u8; 32] = hex!("8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48");
-pub const EMPLOYER_ID: [u8; 32] = hex!("fe65717dad0447d715f660a0a58411de509b42e6efb8375f562f58a554d5860e");
-pub const MALICIOUS_ID: [u8; 32] = hex!("badbadbadd0447d715f660a0a58411de509b42e6efb8375f562f58a554d5860e");
+pub const REFEREE_ID: [u8; 32] = [212,53,147,199,21,253,211,28,97,20,26,189,4,169,159,214,130,44,133,88,133,76,205,227,154,86,132,231,165,109,162,125];
+pub const WORKER_ID: [u8; 32] = [142,175,4,21,22,135,115,99,38,201,254,161,126,37,252,82,135,97,54,147,201,18,144,156,178,38,170,71,148,242,106,72];
+pub const EMPLOYER_ID: [u8; 32] = [254,101,113,125,173,4,71,215,21,246,96,160,165,132,17,222,80,155,66,230,239,184,55,95,86,47,88,165,84,213,134,14];
+pub const MALICIOUS_ID: [u8; 32] = [6,166,233,218,61,113,34,154,171,136,61,55,234,9,139,102,146,228,207,22,127,51,101,144,61,162,221,109,87,172,54,120];
 pub const INITIAL_BALANCE: u64 = 1000;
 pub const REFEREE_STAKE: u64 = 10;
 pub const LETTER_ID: u32 = 1;
-pub const BEFORE_VALID_BLOCK_NUMBER: u64 = 100;
+pub const BEFORE_VALID_BLOCK_NUMBER: u64 = 99;
 pub const LAST_VALID_BLOCK_NUMBER: u64 = 100;
 pub const AFTER_VALID_BLOCK_NUMBER: u64 = 101;
 
@@ -303,7 +303,7 @@ fn wrong_referee_sign() {
 			LettersModule::reimburse(
 				Origin::signed(AccountId::from(Public::from_raw(REFEREE_ID)).into_account()),
 				LETTER_ID,
-				LAST_VALID_BLOCK_NUMBER,
+				// LAST_VALID_BLOCK_NUMBER,
 				H256::from(REFEREE_ID),
 				H256::from(WORKER_ID),
 				H256::from(EMPLOYER_ID),
@@ -389,7 +389,7 @@ fn expired() {
 			LettersModule::reimburse(
 				Origin::signed(AccountId::from(Public::from_raw(REFEREE_ID)).into_account()),
 				LETTER_ID,
-				LAST_VALID_BLOCK_NUMBER,
+				// LAST_VALID_BLOCK_NUMBER,
 				H256::from(REFEREE_ID),
 				H256::from(WORKER_ID),
 				H256::from(EMPLOYER_ID),
@@ -444,7 +444,7 @@ fn referee_has_not_enough_balance() {
 			LettersModule::reimburse(
 				Origin::signed(AccountId::from(Public::from_raw(REFEREE_ID)).into_account()),
 				LETTER_ID,
-				LAST_VALID_BLOCK_NUMBER,
+				// LAST_VALID_BLOCK_NUMBER,
 				H256::from(REFEREE_ID),
 				H256::from(WORKER_ID),
 				H256::from(EMPLOYER_ID),
@@ -457,82 +457,6 @@ fn referee_has_not_enough_balance() {
 	});
 }
 
-#[test]
-fn successful_reimburce() {
-	new_test_ext().execute_with(|| {
-		let referee_hash = H256::from(REFEREE_ID);
-
-		//Data to be signed is represented as u8 array
-		//letter_id (u32) | teach_address [u8; 32] | stud_address [u8; 32] | amount (u128)
-
-		// letter_id (1): [0, 0, 0, 1] // println!("letter_id (1 as u32): {:?}", (1 as u32).to_be_bytes());//
-		// letter_id (2): [0, 0, 0, 2] // println!("letter_id (2 as u32): {:?}", (2 as u32).to_be_bytes());
-
-		// amount (10 as u128): [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10] // println!("amount (10 as u128): {:?}", (10 as u128).to_be_bytes());
-
-		// Data to be signed by referee:
-		// letter_id (u32) | teach_address [u8; 32] | stud_address [u8; 32] | amount (u128)
-		// 1 , REFEREE_ID, WORKER_ID, 10 - see below:
-		// [0, 0, 0, 1],
-		// [228,167,81,18,204,23,38,108,155,194,90,41,194,163,58,60,89,176,227,117,233,66,197,106,239,232,113,141,216,124,78,49],
-		// [178,77,57,242,36,161,83,238,138,176,187,13,7,59,100,92,45,157,163,43,133,176,199,22,118,202,133,229,161,199,255,75],
-		// [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10]
-		//
-		// Referee signature: [96,20,15,21,11,137,10,192,129,3,154,34,203,118,28,19,176,54,165,181,227,156,70,197,73,86,226,111,137,243,69,95,41,74,25,254,228,34,212,189,141,134,194,44,229,172,27,43,67,73,73,58,61,63,37,176,120,195,153,198,46,42,231,129]
-		//
-		// DATA TO BE SIGNED BY STUDENT
-		// 1 , REFEREE_ID, WORKER_ID, 10, referee_signATURE, EMPLOYER_ID
-		// [0, 0, 0, 1],
-		// [228,167,81,18,204,23,38,108,155,194,90,41,194,163,58,60,89,176,227,117,233,66,197,106,239,232,113,141,216,124,78,49],
-		// [178,77,57,242,36,161,83,238,138,176,187,13,7,59,100,92,45,157,163,43,133,176,199,22,118,202,133,229,161,199,255,75],
-		// [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10]
-		// [96,20,15,21,11,137,10,192,129,3,154,34,203,118,28,19,176,54,165,181,227,156,70,197,73,86,226,111,137,243,69,95,41,74,25,254,228,34,212,189,141,134,194,44,229,172,27,43,67,73,73,58,61,63,37,176,120,195,153,198,46,42,231,129]
-		// [166, 82, 220, 58, 28, 232, 181, 15, 154, 161, 152, 109, 179, 47, 157, 32, 202, 28, 33, 243, 219, 161, 164, 110, 173, 174, 79, 180, 188, 244, 227, 86]
-		//
-
-		let referee_signature: [u8; 64] = hex!("2e4e320dd4e6a289795cf51f60bc385dd19c41ccaa0f77c1f7c5c10cd2583a4c8ca01899e3720f5dd4974f695389c9bea6e5839dd692bdebd30c3220f740fb8a");
-		let worker_signature: [u8; 64] = hex!("3e244a3e0ea0b261ed7bd6bd4c538ee9e1e13ab797d4c245c9fc94e98e36eb79b4366380262e9d609257af9b55afbfc9afc72bfb8f860b7e0522db1f02ed9588");
-
-		let number = 1;
-		
-		assert_eq!(
-			LettersModule::was_letter_canceled(referee_hash.clone(), number),
-			false
-		);
-
-		assert_ok!(LettersModule::reimburse(
-			Origin::signed(AccountId::from(Public::from_raw(REFEREE_ID)).into_account()),
-			LETTER_ID,
-			LAST_VALID_BLOCK_NUMBER,
-			H256::from(REFEREE_ID),
-			H256::from(WORKER_ID),
-			H256::from(EMPLOYER_ID),
-			REFEREE_STAKE,
-			H512::from(referee_signature),
-			H512::from(worker_signature)
-		));
-
-		assert_eq!(
-			LettersModule::was_letter_canceled(referee_hash.clone(), number),
-			true
-		);
-
-		assert_noop!(
-			LettersModule::reimburse(
-				Origin::signed(AccountId::from(Public::from_raw(REFEREE_ID)).into_account()),
-				LETTER_ID,
-				LAST_VALID_BLOCK_NUMBER,
-				H256::from(REFEREE_ID),
-				H256::from(WORKER_ID),
-				H256::from(EMPLOYER_ID),
-				REFEREE_STAKE,
-				H512::from(referee_signature),
-				H512::from(worker_signature)
-			),
-			Error::<Test>::LetterWasMarkedAsFraudBefore
-		);
-	});
-}
 
 #[test]
 fn wrong_worker_sign() {
@@ -573,7 +497,7 @@ fn wrong_worker_sign() {
 			LettersModule::reimburse(
 				Origin::signed(AccountId::from(Public::from_raw(REFEREE_ID)).into_account()),
 				LETTER_ID,
-				LAST_VALID_BLOCK_NUMBER,
+				// LAST_VALID_BLOCK_NUMBER,
 				H256::from(REFEREE_ID),
 				H256::from(WORKER_ID),
 				H256::from(EMPLOYER_ID),
@@ -585,3 +509,52 @@ fn wrong_worker_sign() {
 		);
 	});
 }
+
+     
+#[test]
+fn successful_reimburce() {
+	new_test_ext().execute_with(|| {
+		let referee_hash = H256::from(REFEREE_ID);
+
+		let referee_signature: [u8; 64] = [54,232,8,23,4,156,189,101,72,67,122,85,148,77,131,201,103,86,202,135,109,89,74,1,90,198,45,250,115,145,142,92,212,78,145,75,200,188,191,190,194,58,163,243,248,67,191,2,37,106,76,97,255,169,203,59,46,181,110,203,52,249,229,133];
+		let worker_signature: [u8; 64] = [252,118,170,241,5,243,218,87,213,114,209,205,149,113,183,82,212,95,138,186,88,109,122,108,192,139,36,156,81,213,170,57,220,134,99,108,28,189,70,139,125,88,134,176,35,79,35,61,169,44,228,14,40,172,205,210,116,65,157,13,203,35,133,130];
+		
+		assert_eq!(
+			LettersModule::was_letter_canceled(referee_hash.clone(), LETTER_ID as usize),
+			false
+		);
+
+		assert_ok!(LettersModule::reimburse(
+			Origin::signed(AccountId::from(Public::from_raw(REFEREE_ID)).into_account()),
+			LETTER_ID,
+			// LAST_VALID_BLOCK_NUMBER,
+			H256::from(REFEREE_ID),
+			H256::from(WORKER_ID),
+			H256::from(EMPLOYER_ID),
+			REFEREE_STAKE,
+			H512::from(referee_signature),
+			H512::from(worker_signature)
+		));
+
+		assert_eq!(
+			LettersModule::was_letter_canceled(referee_hash.clone(), LETTER_ID as usize),
+			true
+		);
+
+		assert_noop!(
+			LettersModule::reimburse(
+				Origin::signed(AccountId::from(Public::from_raw(REFEREE_ID)).into_account()),
+				LETTER_ID,
+				// LAST_VALID_BLOCK_NUMBER,
+				H256::from(REFEREE_ID),
+				H256::from(WORKER_ID),
+				H256::from(EMPLOYER_ID),
+				REFEREE_STAKE,
+				H512::from(referee_signature),
+				H512::from(worker_signature)
+			),
+			Error::<Test>::LetterWasMarkedAsFraudBefore
+		);
+	});
+}
+
