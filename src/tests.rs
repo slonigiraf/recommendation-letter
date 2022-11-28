@@ -1,3 +1,4 @@
+// Was generated with https://github.com/slonigiraf/recommendation-letter-testing
 use super::*;
 
 use crate as letters;
@@ -104,6 +105,7 @@ impl Config for Test {
 
 use hex_literal::hex;
 
+
 pub const REFEREE_ID: [u8; 32] = [212,53,147,199,21,253,211,28,97,20,26,189,4,169,159,214,130,44,133,88,133,76,205,227,154,86,132,231,165,109,162,125];
 pub const WORKER_ID: [u8; 32] = [142,175,4,21,22,135,115,99,38,201,254,161,126,37,252,82,135,97,54,147,201,18,144,156,178,38,170,71,148,242,106,72];
 pub const EMPLOYER_ID: [u8; 32] = [254,101,113,125,173,4,71,215,21,246,96,160,165,132,17,222,80,155,66,230,239,184,55,95,86,47,88,165,84,213,134,14];
@@ -114,6 +116,7 @@ pub const LETTER_ID: u32 = 1;
 pub const BEFORE_VALID_BLOCK_NUMBER: u64 = 99;
 pub const LAST_VALID_BLOCK_NUMBER: u64 = 100;
 pub const AFTER_VALID_BLOCK_NUMBER: u64 = 101;
+
 
 // Build genesis storage according to the mock runtime.
 pub fn new_test_ext() -> sp_io::TestExternalities {
@@ -257,304 +260,179 @@ fn mark_letter_as_fraud() {
 	});
 }
 
-#[test]
-fn wrong_referee_sign() {
-	new_test_ext().execute_with(|| {
-		//Data to be signed is represented as u8 array
-		//letter_id (u32) | teach_address [u8; 32] | stud_address [u8; 32] | amount (u128)
-
-		// letter_id (1): [0, 0, 0, 1] // println!("letter_id (1 as u32): {:?}", (1 as u32).to_be_bytes());//
-		// letter_id (2): [0, 0, 0, 2] // println!("letter_id (2 as u32): {:?}", (2 as u32).to_be_bytes());
-
-		// amount (10 as u128): [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10] // println!("amount (10 as u128): {:?}", (10 as u128).to_be_bytes());
-
-		// Data to be signed by referee:
-		// letter_id (u32) | teach_address [u8; 32] | stud_address [u8; 32] | amount (u128)
-		// 1 , REFEREE_ID, WORKER_ID, 10 - see below:
-		// [0, 0, 0, 1],
-		// [228,167,81,18,204,23,38,108,155,194,90,41,194,163,58,60,89,176,227,117,233,66,197,106,239,232,113,141,216,124,78,49],
-		// [178,77,57,242,36,161,83,238,138,176,187,13,7,59,100,92,45,157,163,43,133,176,199,22,118,202,133,229,161,199,255,75],
-		// [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10]
-		//
-		// Referee signature: [96,20,15,21,11,137,10,192,129,3,154,34,203,118,28,19,176,54,165,181,227,156,70,197,73,86,226,111,137,243,69,95,41,74,25,254,228,34,212,189,141,134,194,44,229,172,27,43,67,73,73,58,61,63,37,176,120,195,153,198,46,42,231,129]
-		//
-		// DATA TO BE SIGNED BY STUDENT
-		// 1 , REFEREE_ID, WORKER_ID, 10, referee_signATURE, EMPLOYER_ID
-		// [0, 0, 0, 1],
-		// [228,167,81,18,204,23,38,108,155,194,90,41,194,163,58,60,89,176,227,117,233,66,197,106,239,232,113,141,216,124,78,49],
-		// [178,77,57,242,36,161,83,238,138,176,187,13,7,59,100,92,45,157,163,43,133,176,199,22,118,202,133,229,161,199,255,75],
-		// [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10]
-		// [96,20,15,21,11,137,10,192,129,3,154,34,203,118,28,19,176,54,165,181,227,156,70,197,73,86,226,111,137,243,69,95,41,74,25,254,228,34,212,189,141,134,194,44,229,172,27,43,67,73,73,58,61,63,37,176,120,195,153,198,46,42,231,129]
-		// [166, 82, 220, 58, 28, 232, 181, 15, 154, 161, 152, 109, 179, 47, 157, 32, 202, 28, 33, 243, 219, 161, 164, 110, 173, 174, 79, 180, 188, 244, 227, 86]
-		//
-
-		// let referee_signature: [u8; 64] = [
-		// 	96, 20, 15, 21, 11, 137, 10, 192, 129, 3, 154, 34, 203, 118, 28, 19, 176, 54, 165, 181,
-		// 	227, 156, 70, 197, 73, 86, 226, 111, 137, 243, 69, 95, 41, 74, 25, 254, 228, 34, 212,
-		// 	189, 141, 134, 194, 44, 229, 172, 27, 43, 67, 73, 73, 58, 61, 63, 37, 176, 120, 195,
-		// 	153, 198, 46, 42, 231, 129,
-		// ];
-
-		let wrong_referee_signature: [u8; 64] = hex!("bade320dd4e6a289795cf51f60bc385dd19c41ccaa0f77c1f7c5c10cd2583a4c8ca01899e3720f5dd4974f695389c9bea6e5839dd692bdebd30c3220f740fb8a");
-		let worker_signature: [u8; 64] = hex!("3e244a3e0ea0b261ed7bd6bd4c538ee9e1e13ab797d4c245c9fc94e98e36eb79b4366380262e9d609257af9b55afbfc9afc72bfb8f860b7e0522db1f02ed9588");
-
-
-		assert_noop!(
-			LettersModule::reimburse(
-				Origin::signed(AccountId::from(Public::from_raw(REFEREE_ID)).into_account()),
-				LETTER_ID,
-				// LAST_VALID_BLOCK_NUMBER,
-				H256::from(REFEREE_ID),
-				H256::from(WORKER_ID),
-				H256::from(EMPLOYER_ID),
-				REFEREE_STAKE,
-				H512::from(wrong_referee_signature),
-				H512::from(worker_signature)
-			),
-			Error::<Test>::InvalidRefereeSign
-		);
-	});
-}
 
 #[test]
 fn signature_is_valid() {
-	new_test_ext().execute_with(|| {
-		let data_bytes: [u8; 84] = [0,0,0,0,212,53,147,199,21,253,211,28,97,20,26,189,4,169,159,214,130,44,133,88,133,76,205,227,154,86,132,231,165,109,162,125,142,175,4,21,22,135,115,99,38,201,254,161,126,37,252,82,135,97,54,147,201,18,144,156,178,38,170,71,148,242,106,72,0,0,0,0,0,0,0,0,0,3,141,126,164,198,128,0];
-		let signer_bytes: [u8; 32] = [212,53,147,199,21,253,211,28,97,20,26,189,4,169,159,214,130,44,133,88,133,76,205,227,154,86,132,231,165,109,162,125];
-		let sign_bytes: [u8; 64] = [138,50,217,58,78,160,111,75,193,32,230,24,240,159,78,28,220,15,52,217,12,147,92,108,52,16,105,4,103,81,250,88,56,4,210,212,185,12,172,114,108,71,241,188,83,6,40,85,142,69,39,221,23,100,33,137,27,188,147,119,5,96,242,140];
-		let mut data = Vec::new();
-		data.extend_from_slice(&data_bytes);
-		assert_eq!(
-			LettersModule::signature_is_valid(
-				H512::from(sign_bytes),
-				data,
-				H256::from(signer_bytes)
-			),
-			true
-		);
-	});
-}
-
-#[test]
-fn example_how_to_use_block_number() {
-	new_test_ext().execute_with(|| {
-		let expected_number = 1u64;
-		let got_number = System::block_number();
-		frame_system::Pallet::<Test>::set_block_number(expected_number);
-		assert_eq!(got_number, expected_number);
-	});
+    new_test_ext().execute_with(|| {
+        let data_bytes: [u8; 84] = [0,0,0,1,212,53,147,199,21,253,211,28,97,20,26,189,4,169,159,214,130,44,133,88,133,76,205,227,154,86,132,231,165,109,162,125,142,175,4,21,22,135,115,99,38,201,254,161,126,37,252,82,135,97,54,147,201,18,144,156,178,38,170,71,148,242,106,72,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,10];
+        let signer_bytes: [u8; 32] = [212,53,147,199,21,253,211,28,97,20,26,189,4,169,159,214,130,44,133,88,133,76,205,227,154,86,132,231,165,109,162,125];
+        let sign_bytes: [u8; 64] = [108,242,183,124,29,80,136,222,173,198,193,223,84,243,146,191,49,237,69,132,192,208,27,223,142,230,56,165,249,133,4,68,230,111,138,220,88,185,68,251,23,75,195,195,255,147,88,171,115,250,22,150,32,6,240,50,75,105,24,132,42,146,160,139];
+        let mut data = Vec::new();
+        data.extend_from_slice(&data_bytes);
+        assert_eq!(
+            LettersModule::signature_is_valid(
+                H512::from(sign_bytes),
+                data,
+                H256::from(signer_bytes)
+            ),
+            true
+        );
+    });
 }
 
 #[test]
 fn expired() {
-	new_test_ext().execute_with(|| {
-		let referee_hash = H256::from(REFEREE_ID);
+    new_test_ext().execute_with(|| {
+        let referee_hash = H256::from(REFEREE_ID);
 
-		//Data to be signed is represented as u8 array
-		//letter_id (u32) | teach_address [u8; 32] | stud_address [u8; 32] | amount (u128)
+        let referee_signature: [u8; 64] = [108,242,183,124,29,80,136,222,173,198,193,223,84,243,146,191,49,237,69,132,192,208,27,223,142,230,56,165,249,133,4,68,230,111,138,220,88,185,68,251,23,75,195,195,255,147,88,171,115,250,22,150,32,6,240,50,75,105,24,132,42,146,160,139];
+        let worker_signature: [u8; 64] = [146,5,44,248,94,32,242,27,140,185,27,207,44,228,42,150,76,155,35,81,199,184,229,29,32,175,46,54,104,109,31,33,246,83,230,40,5,224,240,150,190,196,148,74,36,83,244,150,227,177,103,20,112,23,193,21,171,13,233,207,185,196,113,133];
+        frame_system::Pallet::<Test>::set_block_number(AFTER_VALID_BLOCK_NUMBER);
+        
+        assert_noop!(
+            LettersModule::reimburse(
+                Origin::signed(AccountId::from(Public::from_raw(REFEREE_ID)).into_account()),
+                LETTER_ID,
+                // LAST_VALID_BLOCK_NUMBER,
+                H256::from(REFEREE_ID),
+                H256::from(WORKER_ID),
+                H256::from(EMPLOYER_ID),
+                REFEREE_STAKE,
+                H512::from(referee_signature),
+                H512::from(worker_signature)
+            ),
+            Error::<Test>::Expired
+        );
+    });
+}
 
-		// letter_id (1): [0, 0, 0, 1] // println!("letter_id (1 as u32): {:?}", (1 as u32).to_be_bytes());//
-		// letter_id (2): [0, 0, 0, 2] // println!("letter_id (2 as u32): {:?}", (2 as u32).to_be_bytes());
+#[test]
+fn successful_reimburce() {
+    new_test_ext().execute_with(|| {
+        let referee_hash = H256::from(REFEREE_ID);
 
-		// amount (10 as u128): [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10] // println!("amount (10 as u128): {:?}", (10 as u128).to_be_bytes());
+        let referee_signature: [u8; 64] = [108,242,183,124,29,80,136,222,173,198,193,223,84,243,146,191,49,237,69,132,192,208,27,223,142,230,56,165,249,133,4,68,230,111,138,220,88,185,68,251,23,75,195,195,255,147,88,171,115,250,22,150,32,6,240,50,75,105,24,132,42,146,160,139];
+        let worker_signature: [u8; 64] = [146,5,44,248,94,32,242,27,140,185,27,207,44,228,42,150,76,155,35,81,199,184,229,29,32,175,46,54,104,109,31,33,246,83,230,40,5,224,240,150,190,196,148,74,36,83,244,150,227,177,103,20,112,23,193,21,171,13,233,207,185,196,113,133];
+        frame_system::Pallet::<Test>::set_block_number(LAST_VALID_BLOCK_NUMBER);
+        
+        assert_eq!(
+            LettersModule::was_letter_canceled(referee_hash.clone(), LETTER_ID as usize),
+            false
+        );
 
-		// Data to be signed by referee:
-		// letter_id (u32) | teach_address [u8; 32] | stud_address [u8; 32] | amount (u128)
-		// 1 , REFEREE_ID, WORKER_ID, 10 - see below:
-		// [0, 0, 0, 1],
-		// [228,167,81,18,204,23,38,108,155,194,90,41,194,163,58,60,89,176,227,117,233,66,197,106,239,232,113,141,216,124,78,49],
-		// [178,77,57,242,36,161,83,238,138,176,187,13,7,59,100,92,45,157,163,43,133,176,199,22,118,202,133,229,161,199,255,75],
-		// [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10]
-		//
-		// Referee signature: [96,20,15,21,11,137,10,192,129,3,154,34,203,118,28,19,176,54,165,181,227,156,70,197,73,86,226,111,137,243,69,95,41,74,25,254,228,34,212,189,141,134,194,44,229,172,27,43,67,73,73,58,61,63,37,176,120,195,153,198,46,42,231,129]
-		//
-		// DATA TO BE SIGNED BY STUDENT
-		// 1 , REFEREE_ID, WORKER_ID, 10, referee_signATURE, EMPLOYER_ID
-		// [0, 0, 0, 1],
-		// [228,167,81,18,204,23,38,108,155,194,90,41,194,163,58,60,89,176,227,117,233,66,197,106,239,232,113,141,216,124,78,49],
-		// [178,77,57,242,36,161,83,238,138,176,187,13,7,59,100,92,45,157,163,43,133,176,199,22,118,202,133,229,161,199,255,75],
-		// [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10]
-		// [96,20,15,21,11,137,10,192,129,3,154,34,203,118,28,19,176,54,165,181,227,156,70,197,73,86,226,111,137,243,69,95,41,74,25,254,228,34,212,189,141,134,194,44,229,172,27,43,67,73,73,58,61,63,37,176,120,195,153,198,46,42,231,129]
-		// [166, 82, 220, 58, 28, 232, 181, 15, 154, 161, 152, 109, 179, 47, 157, 32, 202, 28, 33, 243, 219, 161, 164, 110, 173, 174, 79, 180, 188, 244, 227, 86]
-		//
+        assert_ok!(LettersModule::reimburse(
+            Origin::signed(AccountId::from(Public::from_raw(REFEREE_ID)).into_account()),
+            LETTER_ID,
+            // LAST_VALID_BLOCK_NUMBER,
+            H256::from(REFEREE_ID),
+            H256::from(WORKER_ID),
+            H256::from(EMPLOYER_ID),
+            REFEREE_STAKE,
+            H512::from(referee_signature),
+            H512::from(worker_signature)
+        ));
 
-		let referee_signature: [u8; 64] = hex!("2e4e320dd4e6a289795cf51f60bc385dd19c41ccaa0f77c1f7c5c10cd2583a4c8ca01899e3720f5dd4974f695389c9bea6e5839dd692bdebd30c3220f740fb8a");
-		let worker_signature: [u8; 64] = hex!("3e244a3e0ea0b261ed7bd6bd4c538ee9e1e13ab797d4c245c9fc94e98e36eb79b4366380262e9d609257af9b55afbfc9afc72bfb8f860b7e0522db1f02ed9588");
+        assert_eq!(
+            LettersModule::was_letter_canceled(referee_hash.clone(), LETTER_ID as usize),
+            true
+        );
 
-		let number = 1;
+        assert_noop!(
+            LettersModule::reimburse(
+                Origin::signed(AccountId::from(Public::from_raw(REFEREE_ID)).into_account()),
+                LETTER_ID,
+                // LAST_VALID_BLOCK_NUMBER,
+                H256::from(REFEREE_ID),
+                H256::from(WORKER_ID),
+                H256::from(EMPLOYER_ID),
+                REFEREE_STAKE,
+                H512::from(referee_signature),
+                H512::from(worker_signature)
+            ),
+            Error::<Test>::LetterWasMarkedAsFraudBefore
+        );
+    });
+}
 
-		frame_system::Pallet::<Test>::set_block_number(AFTER_VALID_BLOCK_NUMBER);
+#[test]
+fn wrong_referee_sign() {
+    new_test_ext().execute_with(|| {
+        let referee_hash = H256::from(REFEREE_ID);
 
-		assert_noop!(
-			LettersModule::reimburse(
-				Origin::signed(AccountId::from(Public::from_raw(REFEREE_ID)).into_account()),
-				LETTER_ID,
-				// LAST_VALID_BLOCK_NUMBER,
-				H256::from(REFEREE_ID),
-				H256::from(WORKER_ID),
-				H256::from(EMPLOYER_ID),
-				REFEREE_STAKE,
-				H512::from(referee_signature),
-				H512::from(worker_signature)
-			),
-			Error::<Test>::Expired
-		);
-	});
+        let referee_signature: [u8; 64] = [248,105,6,183,25,225,214,143,223,78,150,102,242,219,225,182,245,193,35,230,218,80,198,47,204,170,19,234,222,172,41,59,23,12,184,220,247,16,152,236,236,65,164,152,5,14,187,30,99,176,238,116,166,171,115,198,238,35,127,222,84,2,61,138];
+        let worker_signature: [u8; 64] = [146,5,44,248,94,32,242,27,140,185,27,207,44,228,42,150,76,155,35,81,199,184,229,29,32,175,46,54,104,109,31,33,246,83,230,40,5,224,240,150,190,196,148,74,36,83,244,150,227,177,103,20,112,23,193,21,171,13,233,207,185,196,113,133];
+        frame_system::Pallet::<Test>::set_block_number(LAST_VALID_BLOCK_NUMBER);
+
+        assert_noop!(
+            LettersModule::reimburse(
+                Origin::signed(AccountId::from(Public::from_raw(REFEREE_ID)).into_account()),
+                LETTER_ID,
+                // LAST_VALID_BLOCK_NUMBER,
+                H256::from(REFEREE_ID),
+                H256::from(WORKER_ID),
+                H256::from(EMPLOYER_ID),
+                REFEREE_STAKE,
+                H512::from(referee_signature),
+                H512::from(worker_signature)
+            ),
+            Error::<Test>::InvalidRefereeSign
+        );
+    });
 }
 
 #[test]
 fn referee_has_not_enough_balance() {
-	new_test_ext().execute_with(|| {
-		//Data to be signed is represented as u8 array
-		//letter_id (u32) | teach_address [u8; 32] | stud_address [u8; 32] | amount (u128)
+    new_test_ext().execute_with(|| {
+        let referee_hash = H256::from(REFEREE_ID);
 
-		// letter_id (1): [0, 0, 0, 1] // println!("letter_id (1 as u32): {:?}", (1 as u32).to_be_bytes());//
-		// letter_id (2): [0, 0, 0, 2] // println!("letter_id (2 as u32): {:?}", (2 as u32).to_be_bytes());
+        let referee_signature: [u8; 64] = [108,242,183,124,29,80,136,222,173,198,193,223,84,243,146,191,49,237,69,132,192,208,27,223,142,230,56,165,249,133,4,68,230,111,138,220,88,185,68,251,23,75,195,195,255,147,88,171,115,250,22,150,32,6,240,50,75,105,24,132,42,146,160,139];
+        let worker_signature: [u8; 64] = [146,5,44,248,94,32,242,27,140,185,27,207,44,228,42,150,76,155,35,81,199,184,229,29,32,175,46,54,104,109,31,33,246,83,230,40,5,224,240,150,190,196,148,74,36,83,244,150,227,177,103,20,112,23,193,21,171,13,233,207,185,196,113,133];
+        frame_system::Pallet::<Test>::set_block_number(LAST_VALID_BLOCK_NUMBER);
 
-		// amount (10 as u128): [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10] // println!("amount (10 as u128): {:?}", (10 as u128).to_be_bytes());
+        Balances::make_free_balance_be(
+            &AccountId::from(Public::from_raw(REFEREE_ID)).into_account(),
+            9,
+        );
 
-		// Data to be signed by referee:
-		// letter_id (u32) | teach_address [u8; 32] | stud_address [u8; 32] | amount (u128)
-		// 1 , REFEREE_ID, WORKER_ID, 10 - see below:
-		// [0, 0, 0, 1],
-		// [228,167,81,18,204,23,38,108,155,194,90,41,194,163,58,60,89,176,227,117,233,66,197,106,239,232,113,141,216,124,78,49],
-		// [178,77,57,242,36,161,83,238,138,176,187,13,7,59,100,92,45,157,163,43,133,176,199,22,118,202,133,229,161,199,255,75],
-		// [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10]
-		//
-		// Referee signature: [96,20,15,21,11,137,10,192,129,3,154,34,203,118,28,19,176,54,165,181,227,156,70,197,73,86,226,111,137,243,69,95,41,74,25,254,228,34,212,189,141,134,194,44,229,172,27,43,67,73,73,58,61,63,37,176,120,195,153,198,46,42,231,129]
-		//
-		// DATA TO BE SIGNED BY STUDENT
-		// 1 , REFEREE_ID, WORKER_ID, 10, referee_signATURE, EMPLOYER_ID
-		// [0, 0, 0, 1],
-		// [228,167,81,18,204,23,38,108,155,194,90,41,194,163,58,60,89,176,227,117,233,66,197,106,239,232,113,141,216,124,78,49],
-		// [178,77,57,242,36,161,83,238,138,176,187,13,7,59,100,92,45,157,163,43,133,176,199,22,118,202,133,229,161,199,255,75],
-		// [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10]
-		// [96,20,15,21,11,137,10,192,129,3,154,34,203,118,28,19,176,54,165,181,227,156,70,197,73,86,226,111,137,243,69,95,41,74,25,254,228,34,212,189,141,134,194,44,229,172,27,43,67,73,73,58,61,63,37,176,120,195,153,198,46,42,231,129]
-		// [166, 82, 220, 58, 28, 232, 181, 15, 154, 161, 152, 109, 179, 47, 157, 32, 202, 28, 33, 243, 219, 161, 164, 110, 173, 174, 79, 180, 188, 244, 227, 86]
-		//
-
-		let referee_signature: [u8; 64] = hex!("2e4e320dd4e6a289795cf51f60bc385dd19c41ccaa0f77c1f7c5c10cd2583a4c8ca01899e3720f5dd4974f695389c9bea6e5839dd692bdebd30c3220f740fb8a");
-		let worker_signature: [u8; 64] = hex!("3e244a3e0ea0b261ed7bd6bd4c538ee9e1e13ab797d4c245c9fc94e98e36eb79b4366380262e9d609257af9b55afbfc9afc72bfb8f860b7e0522db1f02ed9588");
-
-		Balances::make_free_balance_be(
-			&AccountId::from(Public::from_raw(REFEREE_ID)).into_account(),
-			9,
-		);
-		assert_noop!(
-			LettersModule::reimburse(
-				Origin::signed(AccountId::from(Public::from_raw(REFEREE_ID)).into_account()),
-				LETTER_ID,
-				// LAST_VALID_BLOCK_NUMBER,
-				H256::from(REFEREE_ID),
-				H256::from(WORKER_ID),
-				H256::from(EMPLOYER_ID),
-				REFEREE_STAKE,
-				H512::from(referee_signature),
-				H512::from(worker_signature)
-			),
-			Error::<Test>::RefereeBalanceIsNotEnough
-		);
-	});
+        assert_noop!(
+            LettersModule::reimburse(
+                Origin::signed(AccountId::from(Public::from_raw(REFEREE_ID)).into_account()),
+                LETTER_ID,
+                // LAST_VALID_BLOCK_NUMBER,
+                H256::from(REFEREE_ID),
+                H256::from(WORKER_ID),
+                H256::from(EMPLOYER_ID),
+                REFEREE_STAKE,
+                H512::from(referee_signature),
+                H512::from(worker_signature)
+            ),
+            Error::<Test>::RefereeBalanceIsNotEnough
+        );
+    });
 }
-
 
 #[test]
 fn wrong_worker_sign() {
-	new_test_ext().execute_with(|| {
-		//Data to be signed is represented as u8 array
-		//letter_id (u32) | teach_address [u8; 32] | stud_address [u8; 32] | amount (u128)
+    new_test_ext().execute_with(|| {
+        let referee_hash = H256::from(REFEREE_ID);
 
-		// letter_id (1): [0, 0, 0, 1] // println!("letter_id (1 as u32): {:?}", (1 as u32).to_be_bytes());//
-		// letter_id (2): [0, 0, 0, 2] // println!("letter_id (2 as u32): {:?}", (2 as u32).to_be_bytes());
+        let referee_signature: [u8; 64] = [108,242,183,124,29,80,136,222,173,198,193,223,84,243,146,191,49,237,69,132,192,208,27,223,142,230,56,165,249,133,4,68,230,111,138,220,88,185,68,251,23,75,195,195,255,147,88,171,115,250,22,150,32,6,240,50,75,105,24,132,42,146,160,139];
+        let worker_signature: [u8; 64] = [212,163,130,141,165,3,59,202,192,215,55,188,101,112,38,194,32,54,190,243,27,87,152,28,135,227,17,115,230,120,122,72,116,238,2,168,186,226,194,93,213,216,139,201,36,237,77,243,80,67,253,74,108,236,48,225,204,77,128,244,184,175,235,132];
+        frame_system::Pallet::<Test>::set_block_number(LAST_VALID_BLOCK_NUMBER);
 
-		// amount (10 as u128): [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10] // println!("amount (10 as u128): {:?}", (10 as u128).to_be_bytes());
-
-		// Data to be signed by referee:
-		// letter_id (u32) | teach_address [u8; 32] | stud_address [u8; 32] | amount (u128)
-		// 1 , REFEREE_ID, WORKER_ID, 10 - see below:
-		// [0, 0, 0, 1],
-		// [228,167,81,18,204,23,38,108,155,194,90,41,194,163,58,60,89,176,227,117,233,66,197,106,239,232,113,141,216,124,78,49],
-		// [178,77,57,242,36,161,83,238,138,176,187,13,7,59,100,92,45,157,163,43,133,176,199,22,118,202,133,229,161,199,255,75],
-		// [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10]
-		//
-		// Referee signature: [96,20,15,21,11,137,10,192,129,3,154,34,203,118,28,19,176,54,165,181,227,156,70,197,73,86,226,111,137,243,69,95,41,74,25,254,228,34,212,189,141,134,194,44,229,172,27,43,67,73,73,58,61,63,37,176,120,195,153,198,46,42,231,129]
-		//
-		// DATA TO BE SIGNED BY STUDENT
-		// 1 , REFEREE_ID, WORKER_ID, 10, referee_signATURE, EMPLOYER_ID
-		// [0, 0, 0, 1],
-		// [228,167,81,18,204,23,38,108,155,194,90,41,194,163,58,60,89,176,227,117,233,66,197,106,239,232,113,141,216,124,78,49],
-		// [178,77,57,242,36,161,83,238,138,176,187,13,7,59,100,92,45,157,163,43,133,176,199,22,118,202,133,229,161,199,255,75],
-		// [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10]
-		// [96,20,15,21,11,137,10,192,129,3,154,34,203,118,28,19,176,54,165,181,227,156,70,197,73,86,226,111,137,243,69,95,41,74,25,254,228,34,212,189,141,134,194,44,229,172,27,43,67,73,73,58,61,63,37,176,120,195,153,198,46,42,231,129]
-		// [166, 82, 220, 58, 28, 232, 181, 15, 154, 161, 152, 109, 179, 47, 157, 32, 202, 28, 33, 243, 219, 161, 164, 110, 173, 174, 79, 180, 188, 244, 227, 86]
-		//
-
-		let referee_signature: [u8; 64] = hex!("2e4e320dd4e6a289795cf51f60bc385dd19c41ccaa0f77c1f7c5c10cd2583a4c8ca01899e3720f5dd4974f695389c9bea6e5839dd692bdebd30c3220f740fb8a");
-		let wrong_worker_signature: [u8; 64] = hex!("bad44a3e0ea0b261ed7bd6bd4c538ee9e1e13ab797d4c245c9fc94e98e36eb79b4366380262e9d609257af9b55afbfc9afc72bfb8f860b7e0522db1f02ed9588");
-
-
-		assert_noop!(
-			LettersModule::reimburse(
-				Origin::signed(AccountId::from(Public::from_raw(REFEREE_ID)).into_account()),
-				LETTER_ID,
-				// LAST_VALID_BLOCK_NUMBER,
-				H256::from(REFEREE_ID),
-				H256::from(WORKER_ID),
-				H256::from(EMPLOYER_ID),
-				REFEREE_STAKE,
-				H512::from(referee_signature),
-				H512::from(wrong_worker_signature)
-			),
-			Error::<Test>::InvalidWorkerSign
-		);
-	});
+        assert_noop!(
+            LettersModule::reimburse(
+                Origin::signed(AccountId::from(Public::from_raw(REFEREE_ID)).into_account()),
+                LETTER_ID,
+                // LAST_VALID_BLOCK_NUMBER,
+                H256::from(REFEREE_ID),
+                H256::from(WORKER_ID),
+                H256::from(EMPLOYER_ID),
+                REFEREE_STAKE,
+                H512::from(referee_signature),
+                H512::from(worker_signature)
+            ),
+            Error::<Test>::InvalidWorkerSign
+        );
+    });
 }
-
-     
-#[test]
-fn successful_reimburce() {
-	new_test_ext().execute_with(|| {
-		let referee_hash = H256::from(REFEREE_ID);
-
-		let referee_signature: [u8; 64] = [54,232,8,23,4,156,189,101,72,67,122,85,148,77,131,201,103,86,202,135,109,89,74,1,90,198,45,250,115,145,142,92,212,78,145,75,200,188,191,190,194,58,163,243,248,67,191,2,37,106,76,97,255,169,203,59,46,181,110,203,52,249,229,133];
-		let worker_signature: [u8; 64] = [252,118,170,241,5,243,218,87,213,114,209,205,149,113,183,82,212,95,138,186,88,109,122,108,192,139,36,156,81,213,170,57,220,134,99,108,28,189,70,139,125,88,134,176,35,79,35,61,169,44,228,14,40,172,205,210,116,65,157,13,203,35,133,130];
-		
-		assert_eq!(
-			LettersModule::was_letter_canceled(referee_hash.clone(), LETTER_ID as usize),
-			false
-		);
-
-		assert_ok!(LettersModule::reimburse(
-			Origin::signed(AccountId::from(Public::from_raw(REFEREE_ID)).into_account()),
-			LETTER_ID,
-			// LAST_VALID_BLOCK_NUMBER,
-			H256::from(REFEREE_ID),
-			H256::from(WORKER_ID),
-			H256::from(EMPLOYER_ID),
-			REFEREE_STAKE,
-			H512::from(referee_signature),
-			H512::from(worker_signature)
-		));
-
-		assert_eq!(
-			LettersModule::was_letter_canceled(referee_hash.clone(), LETTER_ID as usize),
-			true
-		);
-
-		assert_noop!(
-			LettersModule::reimburse(
-				Origin::signed(AccountId::from(Public::from_raw(REFEREE_ID)).into_account()),
-				LETTER_ID,
-				// LAST_VALID_BLOCK_NUMBER,
-				H256::from(REFEREE_ID),
-				H256::from(WORKER_ID),
-				H256::from(EMPLOYER_ID),
-				REFEREE_STAKE,
-				H512::from(referee_signature),
-				H512::from(worker_signature)
-			),
-			Error::<Test>::LetterWasMarkedAsFraudBefore
-		);
-	});
-}
-
