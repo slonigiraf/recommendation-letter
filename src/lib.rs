@@ -50,6 +50,7 @@ pub mod pallet {
 		#[pallet::constant]
 		type DefaultDifficulty: Get<u32>;
 		type LettersPerChunk: Get<u32>;
+		type TheParaId: Get<u32>;
 	}
 	pub type BalanceOf<T> =
 		<<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
@@ -89,12 +90,14 @@ pub mod pallet {
 		RefereeBalanceIsNotEnough,
 		LetterWasMarkedAsFraudBefore,
 		Expired,
+		WrongParaId,
 	}
 
 	#[pallet::pallet]
 	#[pallet::generate_store(pub(super) trait Store)]
 	pub struct Pallet<T>(_);
 
+	//TODO: use https://paritytech.github.io/cumulus/cumulus_primitives_core/struct.ParaId.html
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		// A reimbursement functionality. A referee should should pay initially defined Balance sum if employer thinks that the letter is wrong.
@@ -102,6 +105,7 @@ pub mod pallet {
 		#[transactional]
 		pub fn reimburse(
 			origin: OriginFor<T>,
+			para_id: u32,
 			letter_id: u32,
 			block_number: u64,
 			referee_id: H256,
@@ -112,6 +116,11 @@ pub mod pallet {
 			worker_sign: H512,
 		) -> DispatchResultWithPostInfo {
 			let _sender = ensure_signed(origin)?;
+
+			ensure!(
+				T::TheParaId::get() == para_id,
+				Error::<T>::WrongParaId
+			);
 
 			ensure!(
 				frame_system::Pallet::<T>::block_number().saturated_into::<u64>() <= block_number,
@@ -125,6 +134,7 @@ pub mod pallet {
 			// [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10]
 			// or in line:
 
+			let para_id_bytes = &para_id.to_be_bytes();
 			let letter_id_bytes = &letter_id.to_be_bytes();
 			let block_number_bytes = &block_number.to_be_bytes();
 			let referee_id_bytes = referee_id.as_bytes();
@@ -136,6 +146,7 @@ pub mod pallet {
 			let ask_price_bytes = &ask_price_u128.to_be_bytes();
 
 			let mut skill_receipt_data = Vec::new();
+			skill_receipt_data.extend_from_slice(para_id_bytes);
 			skill_receipt_data.extend_from_slice(letter_id_bytes);
 			skill_receipt_data.extend_from_slice(block_number_bytes);
 			skill_receipt_data.extend_from_slice(referee_id_bytes);
