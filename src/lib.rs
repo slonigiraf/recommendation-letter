@@ -75,9 +75,6 @@ pub mod pallet {
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
-	// #[pallet::metadata(
-	// 	T::AccountId = "AccountId", LetterIndexOf<T> = "LetterIndex", Option<BalanceOf<T>> = "Option<Balance>", BalanceOf<T> = "Balance",
-	// )]
 	pub enum Event<T: Config> {
 		ReimbursementHappened(H256, u64),
 	}

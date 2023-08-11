@@ -33,17 +33,17 @@ pub trait WeightInfo {
 pub struct SubstrateWeight<T>(PhantomData<T>);
 impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	fn reimburse() -> Weight {
-		(217_000_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(1 as Weight))
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+		(256_000_000 as Weight)
+				.saturating_add(T::DbWeight::get().reads(3 as Weight))
+				.saturating_add(T::DbWeight::get().writes(3 as Weight))
 	}
 }
 
 // For backwards compatibility and tests
 impl WeightInfo for () {
 	fn reimburse() -> Weight {
-		(217_000_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(1 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
+		(256_000_000 as Weight)
+				.saturating_add(RocksDbWeight::get().reads(3 as Weight))
+				.saturating_add(RocksDbWeight::get().writes(3 as Weight))
 	}
 }
