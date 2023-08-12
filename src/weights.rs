@@ -17,33 +17,38 @@
 // --execution=wasm
 // --wasm-execution=compiled
 
-
 #![allow(unused_parens)]
 #![allow(unused_imports)]
 
-use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
+use frame_support::{
+    traits::Get,
+    weights::{constants::RocksDbWeight, Weight},
+};
 use sp_std::marker::PhantomData;
 
 /// Weight functions needed for pallet_letters.
 pub trait WeightInfo {
-	fn reimburse() -> Weight;
+    fn reimburse() -> Weight;
 }
 
 /// Weights for pallet_letters using the Substrate node and recommended hardware.
 pub struct SubstrateWeight<T>(PhantomData<T>);
 impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
-	fn reimburse() -> Weight {
-		(256_000_000 as Weight)
-				.saturating_add(T::DbWeight::get().reads(3 as Weight))
-				.saturating_add(T::DbWeight::get().writes(3 as Weight))
-	}
+    // Storage: System BlockHash (r:1 w:0)
+    // Storage: Letters OwnedLetersArray (r:1 w:1)
+    // Storage: System Account (r:2 w:2)
+    fn reimburse() -> Weight {
+        (214_000_000 as Weight)
+            .saturating_add(T::DbWeight::get().reads(4 as Weight))
+            .saturating_add(T::DbWeight::get().writes(3 as Weight))
+    }
 }
 
 // For backwards compatibility and tests
 impl WeightInfo for () {
 	fn reimburse() -> Weight {
-		(256_000_000 as Weight)
-				.saturating_add(RocksDbWeight::get().reads(3 as Weight))
-				.saturating_add(RocksDbWeight::get().writes(3 as Weight))
-	}
+        (214_000_000 as Weight)
+            .saturating_add(RocksDbWeight::get().reads(4 as Weight))
+            .saturating_add(RocksDbWeight::get().writes(3 as Weight))
+    }
 }
