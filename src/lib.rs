@@ -50,7 +50,6 @@ pub mod pallet {
 		#[pallet::constant]
 		type DefaultDifficulty: Get<u32>;
 		type LettersPerChunk: Get<u32>;
-		type TheParaId: Get<u32>;
 	}
 	pub type BalanceOf<T> =
 		<<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
@@ -94,7 +93,6 @@ pub mod pallet {
 	#[pallet::generate_store(pub(super) trait Store)]
 	pub struct Pallet<T>(_);
 
-	//TODO: use https://paritytech.github.io/cumulus/cumulus_primitives_core/struct.ParaId.html
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		// A reimbursement functionality. A referee should should pay initially defined Balance sum if employer thinks that the letter is wrong.
@@ -102,7 +100,6 @@ pub mod pallet {
 		#[transactional]
 		pub fn reimburse(
 			origin: OriginFor<T>,
-			para_id: u32,
 			letter_id: u32,
 			block_number: u64,
 			referee_id: H256,
@@ -113,25 +110,17 @@ pub mod pallet {
 			worker_sign: H512,
 		) -> DispatchResultWithPostInfo {
 			let _sender = ensure_signed(origin)?;
-
-			ensure!(
-				T::TheParaId::get() == para_id,
-				Error::<T>::WrongParaId
-			);
+			
+			// Get genesis_hash
+			let zero_block: <T as frame_system::Config>::BlockNumber = 0u64.saturated_into();
+			let genesis_hash = frame_system::Pallet::<T>::block_hash(zero_block);
 
 			ensure!(
 				frame_system::Pallet::<T>::block_number().saturated_into::<u64>() <= block_number,
 				Error::<T>::Expired
 			);
 
-			// 1 , referee_id, worker_id, 10 - see below
-			// [0, 0, 0, 1],
-			// [228,167,81,18,204,23,38,108,155,194,90,41,194,163,58,60,89,176,227,117,233,66,197,106,239,232,113,141,216,124,78,49],
-			// [178,77,57,242,36,161,83,238,138,176,187,13,7,59,100,92,45,157,163,43,133,176,199,22,118,202,133,229,161,199,255,75],
-			// [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10]
-			// or in line:
-
-			let para_id_bytes = &para_id.to_be_bytes();
+			let genesis_hash_bytes = &genesis_hash.as_ref().clone();
 			let letter_id_bytes = &letter_id.to_be_bytes();
 			let block_number_bytes = &block_number.to_be_bytes();
 			let referee_id_bytes = referee_id.as_bytes();
@@ -143,7 +132,7 @@ pub mod pallet {
 			let ask_price_bytes = &ask_price_u128.to_be_bytes();
 
 			let mut skill_receipt_data = Vec::new();
-			skill_receipt_data.extend_from_slice(para_id_bytes);
+			skill_receipt_data.extend_from_slice(genesis_hash_bytes);
 			skill_receipt_data.extend_from_slice(letter_id_bytes);
 			skill_receipt_data.extend_from_slice(block_number_bytes);
 			skill_receipt_data.extend_from_slice(referee_id_bytes);
@@ -159,7 +148,12 @@ pub mod pallet {
 				Error::<T>::InvalidRefereeSign
 			);
 
-			let mut skill_letter_data = skill_receipt_data;
+			let mut skill_letter_data = Vec::new();
+			skill_letter_data.extend_from_slice(letter_id_bytes);
+			skill_letter_data.extend_from_slice(block_number_bytes);
+			skill_letter_data.extend_from_slice(referee_id_bytes);
+			skill_letter_data.extend_from_slice(worker_id_bytes);
+			skill_letter_data.extend_from_slice(ask_price_bytes);
 			skill_letter_data.extend_from_slice(referee_sign.as_bytes());
 			skill_letter_data.extend_from_slice(employer_id.as_bytes());
 
