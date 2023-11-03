@@ -38,17 +38,17 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
     // Storage: Letters OwnedLetersArray (r:1 w:1)
     // Storage: System Account (r:2 w:2)
     fn reimburse() -> Weight {
-        (214_000_000 as Weight)
-            .saturating_add(T::DbWeight::get().reads(4 as Weight))
-            .saturating_add(T::DbWeight::get().writes(3 as Weight))
+        Weight::from_parts(214_000_000_u64, 0)
+            .saturating_add(T::DbWeight::get().reads(4_u64))
+            .saturating_add(T::DbWeight::get().writes(3_u64))
     }
 }
 
 // For backwards compatibility and tests
 impl WeightInfo for () {
 	fn reimburse() -> Weight {
-        (214_000_000 as Weight)
-            .saturating_add(RocksDbWeight::get().reads(4 as Weight))
-            .saturating_add(RocksDbWeight::get().writes(3 as Weight))
+        Weight::from_parts(214_000_000_u64, 0)
+            .saturating_add(RocksDbWeight::get().reads(4_u64))
+            .saturating_add(RocksDbWeight::get().writes(3_u64))
     }
 }

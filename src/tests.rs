@@ -5,26 +5,21 @@ use crate as letters;
 use frame_support::{assert_noop, assert_ok, parameter_types};
 use sp_core::H256;
 use sp_runtime::{
-	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
+	BuildStorage,
 };
 
-type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
 
 pub type AccountId = <<Signature as Verify>::Signer as IdentifyAccount>::AccountId;
 
 // Configure a mock runtime to test the pallet.
 frame_support::construct_runtime!(
-	pub enum Test where
-		Block = Block,
-		NodeBlock = Block,
-		UncheckedExtrinsic = UncheckedExtrinsic,
-	{
-		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-		LettersModule: letters::{Pallet, Call, Storage, Event<T>, Config},
-	}
+    pub enum Test {
+        System: frame_system::{Pallet, Call, Config<T>, Storage, Event<T>},
+        Balances: pallet_balances::{Pallet, Call, Config<T>, Storage, Event<T>},
+        LettersModule: letters::{Pallet, Call, Storage, Event<T>, Config<Test>},
+    }
 );
 
 parameter_types! {
@@ -37,16 +32,15 @@ impl frame_system::Config for Test {
 	type BlockWeights = ();
 	type BlockLength = ();
 	type DbWeight = ();
-	type Origin = Origin;
-	type Call = Call;
-	type Index = u64;
-	type BlockNumber = u64;
+	type RuntimeOrigin = RuntimeOrigin;
+	type RuntimeCall = RuntimeCall;
+	type Nonce = u64;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
 	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = Header;
-	type Event = Event;
+	type Block = Block;
+	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
 	type PalletInfo = PalletInfo;
@@ -65,23 +59,21 @@ parameter_types! {
 impl pallet_balances::Config for Test {
 	type MaxLocks = ();
 	type Balance = u64;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
 	type WeightInfo = ();
 	type MaxReserves = ();
 	type ReserveIdentifier = ();
+	type FreezeIdentifier = ();
+	type MaxFreezes = ();
+	type RuntimeHoldReason = ();
+	type MaxHolds = ();
 }
 
 parameter_types! {
 	pub static MockRandom: H256 = Default::default();
-}
-
-impl Randomness<H256, u64> for MockRandom {
-	fn random(_subject: &[u8]) -> (H256, u64) {
-		(MockRandom::get(), 0)
-	}
 }
 
 parameter_types! {
@@ -95,8 +87,7 @@ parameter_types! {
 }
 
 impl Config for Test {
-	type Event = Event;
-	type Randomness = MockRandom;
+	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type WeightInfo = ();
 	type DefaultDifficulty = DefaultDifficulty;
@@ -117,10 +108,8 @@ pub const AFTER_VALID_BLOCK_NUMBER: u64 = 101;
 
 // Build genesis storage according to the mock runtime.
 pub fn new_test_ext() -> sp_io::TestExternalities {
-	let mut t = frame_system::GenesisConfig::default()
-		.build_storage::<Test>()
-		.unwrap();
-
+	let mut t = frame_system::GenesisConfig::<Test>::default().build_storage().unwrap();
+	
 	pallet_balances::GenesisConfig::<Test> {
 		balances: vec![
 			(
@@ -142,12 +131,6 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
 		],
 	}
 	.assimilate_storage(&mut t)
-	.unwrap();
-
-	<crate::GenesisConfig as GenesisBuild<Test>>::assimilate_storage(
-		&crate::GenesisConfig::default(),
-		&mut t,
-	)
 	.unwrap();
 
 	let mut t: sp_io::TestExternalities = t.into();
@@ -280,15 +263,13 @@ fn signature_is_valid() {
 #[test]
 fn expired() {
     new_test_ext().execute_with(|| {
-        let referee_hash = H256::from(REFEREE_ID);
-
         let referee_signature: [u8; 64] = [230,254,200,182,235,226,12,249,184,181,112,226,175,39,242,54,250,54,30,153,11,6,223,63,200,15,30,172,155,236,184,90,228,93,35,32,112,131,38,174,64,123,134,191,21,104,192,26,39,254,160,62,107,122,113,224,15,139,105,188,15,194,0,136];
         let worker_signature: [u8; 64] = [226,142,94,47,218,226,248,250,176,143,168,97,3,93,18,23,44,244,103,153,34,158,101,73,154,49,215,64,235,69,164,28,9,106,65,132,118,73,83,1,185,164,144,144,1,242,217,189,151,90,160,232,18,133,106,125,213,237,117,24,244,60,194,131];
         frame_system::Pallet::<Test>::set_block_number(AFTER_VALID_BLOCK_NUMBER);
         
         assert_noop!(
             LettersModule::reimburse(
-                Origin::signed(AccountId::from(Public::from_raw(REFEREE_ID)).into_account()),
+                RuntimeOrigin::signed(AccountId::from(Public::from_raw(REFEREE_ID)).into_account()),
                 LETTER_ID,
                 LAST_VALID_BLOCK_NUMBER,
                 H256::from(REFEREE_ID),
@@ -312,7 +293,7 @@ fn wrong_genesis() {
         
         assert_noop!(
             LettersModule::reimburse(
-                Origin::signed(AccountId::from(Public::from_raw(REFEREE_ID)).into_account()),
+                RuntimeOrigin::signed(AccountId::from(Public::from_raw(REFEREE_ID)).into_account()),
                 LETTER_ID,
                 LAST_VALID_BLOCK_NUMBER,
                 H256::from(REFEREE_ID),
@@ -342,7 +323,7 @@ fn successful_reimburse() {
         );
 
         assert_ok!(LettersModule::reimburse(
-            Origin::signed(AccountId::from(Public::from_raw(REFEREE_ID)).into_account()),
+            RuntimeOrigin::signed(AccountId::from(Public::from_raw(REFEREE_ID)).into_account()),
             LETTER_ID,
             LAST_VALID_BLOCK_NUMBER,
             H256::from(REFEREE_ID),
@@ -360,7 +341,7 @@ fn successful_reimburse() {
 
         assert_noop!(
             LettersModule::reimburse(
-                Origin::signed(AccountId::from(Public::from_raw(REFEREE_ID)).into_account()),
+                RuntimeOrigin::signed(AccountId::from(Public::from_raw(REFEREE_ID)).into_account()),
                 LETTER_ID,
                 LAST_VALID_BLOCK_NUMBER,
                 H256::from(REFEREE_ID),
@@ -384,7 +365,7 @@ fn wrong_referee_sign() {
 
         assert_noop!(
             LettersModule::reimburse(
-                Origin::signed(AccountId::from(Public::from_raw(REFEREE_ID)).into_account()),
+                RuntimeOrigin::signed(AccountId::from(Public::from_raw(REFEREE_ID)).into_account()),
                 LETTER_ID,
                 LAST_VALID_BLOCK_NUMBER,
                 H256::from(REFEREE_ID),
@@ -413,7 +394,7 @@ fn referee_has_not_enough_balance() {
 
         assert_noop!(
             LettersModule::reimburse(
-                Origin::signed(AccountId::from(Public::from_raw(REFEREE_ID)).into_account()),
+                RuntimeOrigin::signed(AccountId::from(Public::from_raw(REFEREE_ID)).into_account()),
                 LETTER_ID,
                 LAST_VALID_BLOCK_NUMBER,
                 H256::from(REFEREE_ID),
@@ -437,7 +418,7 @@ fn wrong_worker_sign() {
 
         assert_noop!(
             LettersModule::reimburse(
-                Origin::signed(AccountId::from(Public::from_raw(REFEREE_ID)).into_account()),
+                RuntimeOrigin::signed(AccountId::from(Public::from_raw(REFEREE_ID)).into_account()),
                 LETTER_ID,
                 LAST_VALID_BLOCK_NUMBER,
                 H256::from(REFEREE_ID),
