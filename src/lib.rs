@@ -83,6 +83,7 @@ pub mod pallet {
         RefereeBalanceIsNotEnough,
         LetterWasMarkedAsFraudBefore,
         Expired,
+        NotAllowed,
         WrongParaId,
     }
 
@@ -114,13 +115,13 @@ pub mod pallet {
             let genesis_hash = frame_system::Pallet::<T>::block_hash(zero_block);
 
             ensure!(
-                block_allowed <= block_number,
-                Error::<T>::Expired
-            );
-            
-            ensure!(
                 frame_system::Pallet::<T>::block_number().saturated_into::<u64>() <= block_number,
                 Error::<T>::Expired
+            );
+
+            ensure!(
+                frame_system::Pallet::<T>::block_number().saturated_into::<u64>() <= block_allowed,
+                Error::<T>::NotAllowed
             );
 
             let genesis_hash_bytes = &genesis_hash.as_ref();
