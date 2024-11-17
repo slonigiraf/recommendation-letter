@@ -274,7 +274,7 @@ impl<T: Config> Pallet<T> {
         // Write `mint` event
         Self::deposit_event(Event::ReimbursementHappened(
             referee,
-            coordinates.chunk as u64,
+            letter_number as u64,
         ));
         Ok(())
     }
